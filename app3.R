@@ -1,5 +1,3 @@
-setwd("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/Site_explo_version3")
-rm(list = ls())
 library(shiny)
 library(tidyverse)
 library(rcoleo)
@@ -14,8 +12,6 @@ library(plotly)
 
 
 if(!exists("all_obs")){source("Manip_coleo.R")}
-#source("multiplot_functions.R")
-#source("regions_Ouranos_vs_cellules_COLEO.R")
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
