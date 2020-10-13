@@ -1,4 +1,3 @@
-setwd("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/Site_explo_version3")
 rm(list = ls())
 library(tidyverse)
 library(rcoleo)
@@ -9,9 +8,7 @@ library(jsonlite)
 library(geojsonio)
 library(sf)
 
-#source("functions.R")
 source("Region_Ouranos.R")
-setwd("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/Site_explo_version3")
 
 # ----------------------------------------------------- #
 #### Obtention des informations pour tous les sites ####
