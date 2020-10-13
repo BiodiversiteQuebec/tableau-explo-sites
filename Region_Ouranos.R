@@ -8,33 +8,12 @@ library(rcoleo)
 library(dplyr)
 
 
-# ------------------------------------------------ #
-#### Formatage des coord. des cellules --> geoJson pour extraction des données météo ####
-# Via earthmap.org - https://earthmap.org/
-# ---------------------------------------------- #
-setwd("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB")
-# # Obtention de toutes les cellules
-# cells <- rcoleo::get_gen("/cells")
-# cells <- do.call("rbind.fill", cells$body)
-#
-# # Conversion des polygones en spatial feature
-# geom <- rcoleo::cl_to_sf(cells[,c(1, 7, 8)])
-# names(geom)[1] <- "name"
-#
-# # Obtention des cellules uniquement présentes dans le prototype de la shiny app
-# #cells : 134 198 151 165 119 149 160 157 169 186 141 446 495
-# uniq_cells <- unique(all_obs$cell_id)
-# coord_app_geojson <- geom[geom$name %in% uniq_cells,]
-#
-# coord_app_geojson <- geojson_json(coord_app_geojson)
-
 # ------------------------------ #
 #### Environmental data uniquement pour les cellules dans le prototype du TdeB ####
 # ---------------------------- #
 
-meteoCELLS <- list.files(path = "/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/data_meteo_cells/", full.names = TRUE)
-nb <- nchar("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/data_meteo_cells//") # For counting the nimber of characters in the path = 67
-#lapply(funRcoleo, source)
+meteoCELLS <- list.files(path = "data_meteo_cells", full.names = TRUE)
+nb <- nchar("data_meteo_cells/") # For counting the number of characters in the path
 
 meteoCELLSdf <- data.frame()
 for(i in 1:length(meteoCELLS)){
@@ -57,29 +36,11 @@ meteoCELLSdf$indic_meteo <- as.factor(meteoCELLSdf$indic_meteo)
 
 
 
-setwd("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/data_ouranos")
-
 # sf objects
-reg <- geojson_sf("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
-cellJSON <- geojsonio::geojson_sf("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/cellsCOORD.geojson") # toutes les cellules existantes dans COLEO
-cellSHINY <- geojsonio::geojson_sf("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/ShinycellsCOORD.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
-
-
-plot(st_geometry(reg), col = "white", border = "grey")
-plot(st_geometry(cellSHINY), border = "darkorange" , add = TRUE)
-#
-# class(reg)
-# class(cellJSON)
-# class(cellSHINY)
-
-st_is_valid(reg)
-#st_intersects(reg, cellJSON)
-#j <- st_intersects(reg, cellSHINY)
-
+reg <- geojson_sf("data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
+cellSHINY <- geojsonio::geojson_sf("ShinycellsCOORD.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
 
 st_centroid(cellSHINY)
-
-plot(st_geometry(st_centroid(cellSHINY)),col = "red" , add = TRUE)
 
 cent <- st_intersects(reg, st_centroid(cellSHINY))
 
@@ -105,7 +66,7 @@ names(RegCellsShiny)[4] <- "cell_id"
 #### ------ Récupération des scénarios climatiques dépendemment des régions ----- ####
 scenario_meteo <- data.frame()
 for (i in unique(RegCellsShiny$Region)){
-  files <- list.files("/home/claire/PostDoc_COLEO/shiny_site_explo/TdeB/data_ouranos",
+  files <- list.files("data_ouranos",
                       pattern = i,
                       full.names = TRUE)
   for (j in files){
@@ -121,7 +82,5 @@ for (i in unique(RegCellsShiny$Region)){
   }
 
 }
-#
-# head(scenario_meteo)
-# summary(scenario_meteo)
+
 
