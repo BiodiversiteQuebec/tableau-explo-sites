@@ -1,3 +1,4 @@
+
 rm(list = ls())
 library(tidyverse)
 library(rcoleo)
@@ -8,7 +9,9 @@ library(jsonlite)
 library(geojsonio)
 library(sf)
 
+#source("functions.R")
 source("Region_Ouranos.R")
+
 
 # ----------------------------------------------------- #
 #### Obtention des informations pour tous les sites ####
