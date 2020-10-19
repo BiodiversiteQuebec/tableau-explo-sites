@@ -50,6 +50,9 @@ all_sites <- all_sites %>%
                              "<br/>",
                              "<b> annee_creation</b> ",
                              open_year))
+# Nettoyage du DF
+all_sites <- all_sites[, c(1, 2, 4:6, 16, 21:25)] #"id", "cell_id", "site_code", "type", "opened_at", "cell.cell_code", "long_site", "lat_site", "open_year", "col", "popup_info"
+names(all_sites)[c(1, 4, 5, 6, 9)] <- c("site_id", "hab_type", "cell_opened_at", "cell_code", "cell_opened_year")
 
 # ------------------------------- #
 #### Observations des especes ####
@@ -58,41 +61,36 @@ all_sites <- all_sites %>%
 # via get_gen() directement - Plus rapide
 observations <- rcoleo::get_gen("/observations")
 observations <- do.call("rbind.fill", observations[[1]])
-observations <- observations[, c(1, 2, 4, 12, 21:24)]
+observations <- observations[, c(1, 2, 4, 12, 21:24)] #"id", "date_obs", "stratum", "campaign_id", "obs_species.id", "obs_species.taxa_name", "obs_species.variable", "obs_species.value"
+names(observations)[c(1, 5:8)] <- c("obs_id", "species_id", "name", "species_value_type", "species_value")
 
 # Association du type de campagne pour chaque observations
 # Préparation du DF campaigns
 campaigns <- rcoleo::get_gen("/campaigns") # Identique à rcoleo::get_campaigns()
 campaigns <- do.call("rbind.fill", campaigns[[1]])
 campaigns <- campaigns[, c(1:3, 5, 6)]
-names(campaigns)[c(1, 3:5)] <- c("campaign_id", "campaign_type", "campaign_opened_at", "campaign_closed_at")
+names(campaigns)[c(1, 3:5)] <- c("campaign_id", "campaign_type", "campaign_opened_at", "campaign_closed_at") #"campaign_id", "site_id", "campaign_type", "campaign_opened_at", "campaign_closed_at"
 
 # Tables joining
 obsCamp <- dplyr::left_join(observations, campaigns, by = "campaign_id")
-obsCamp <-cbind(obsCamp[,c(1, 4, 5, 8)],(apply(obsCamp[, c(2, 3, 6, 7, 9:11)], 2, as.factor)))
+#obsCamp <-cbind(obsCamp[,c(1, 4, 5, 8)],(apply(obsCamp[, c(2, 3, 6, 7, 9:11)], 2, as.factor)))
 
 # Association avec le type d'indicateurs (= species category)
 getSpecies <- rcoleo::get_species()
 getSpecies <- do.call("rbind.fill", getSpecies[[1]])
 
-names(obsCamp)[7] <- "name"
 obsCampCat <- dplyr::left_join(obsCamp, getSpecies[, 1:4], by = "name")
-obsCampCat <- cbind(obsCampCat[, c(1:6, 8:11)], (apply(obsCampCat[, c(7, 12:14)], 2, as.factor)))
+#obsCampCat <- cbind(obsCampCat[, c(1:6, 8:11)], (apply(obsCampCat[, c(7, 12:14)], 2, as.factor)))
 
 # Association du nom du site où l'observation a eu lieu
-names(all_sites)[1] <- "site_id"
-obsCampCat$site_id <- as.numeric(obsCampCat$site_id)
-obsCampCat <- left_join(obsCampCat, all_sites[, c(1, 4:6, 13:15, 20:24)], by = "site_id")
-
-
-all_obs <- cbind(obsCampCat[, c(1:14, 18, 21, 22, 24, 25)], (apply(obsCampCat[, c(15:17, 19, 20, 23)], 2, as.factor)))
+all_obs <- left_join(obsCampCat, all_sites, by = "site_id")
 
 # Nettoyage du DF
 # Noms de variables
-names(all_obs)[c(3, 4, 8, 18, 21:24)] <- c("species_id", "species_value", "species_value_type", "site_open_year", "hab_type", "site_open_at", "cell_id", "cell_name")
-all_obs$hab_type <- as.character(all_obs$hab_type)
-all_obs$cell_id <- as.numeric(all_obs$cell_id)
-all_obs$lat_site <- as.numeric(all_obs$lat_site)
+# names(all_obs)[c(3, 4, 8, 18, 21:24)] <- c(, "site_open_year", "hab_type", "site_open_at", "cell_id", "cell_name")
+# all_obs$hab_type <- as.character(all_obs$hab_type)
+# all_obs$cell_id <- as.numeric(all_obs$cell_id)
+# all_obs$lat_site <- as.numeric(all_obs$lat_site)
 
 # Année d'observations
 
