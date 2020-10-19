@@ -37,8 +37,8 @@ meteoCELLSdf$indic_meteo <- as.factor(meteoCELLSdf$indic_meteo)
 
 
 # sf objects
-reg <- geojson_sf("data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
-cellSHINY <- geojsonio::geojson_sf("ShinycellsCOORD.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
+reg <- geojson_sf("source_data/data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
+cellSHINY <- geojsonio::geojson_sf("local_data/ShinycellsCOORD.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
 
 st_centroid(cellSHINY)
 

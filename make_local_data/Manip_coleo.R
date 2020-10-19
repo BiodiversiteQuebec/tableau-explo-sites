@@ -10,7 +10,7 @@ library(geojsonio)
 library(sf)
 
 #source("functions.R")
-source("Region_Ouranos.R")
+source("source_data/Region_Ouranos.R")
 
 
 # ----------------------------------------------------- #
