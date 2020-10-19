@@ -10,7 +10,7 @@ library(geojsonio)
 library(sf)
 
 #source("functions.R")
-source("source_data/Region_Ouranos.R")
+source("make_local_data/Region_Ouranos.R")
 
 
 # ----------------------------------------------------- #
@@ -58,7 +58,7 @@ all_sites <- all_sites %>%
 # via get_gen() directement - Plus rapide
 observations <- rcoleo::get_gen("/observations")
 observations <- do.call("rbind.fill", observations[[1]])
-observations <- observations[, c(1, 2, 4, 12, 20:22)]
+observations <- observations[, c(1, 2, 4, 12, 21:24)]
 
 # Association du type de campagne pour chaque observations
 # Préparation du DF campaigns
@@ -69,7 +69,7 @@ names(campaigns)[c(1, 3:5)] <- c("campaign_id", "campaign_type", "campaign_opene
 
 # Tables joining
 obsCamp <- dplyr::left_join(observations, campaigns, by = "campaign_id")
-obsCamp <-cbind(obsCamp[,c(1, 4, 7, 8)],(apply(obsCamp[, c(2, 3, 5, 6, 9:11)], 2, as.factor)))
+obsCamp <-cbind(obsCamp[,c(1, 4, 5, 8)],(apply(obsCamp[, c(2, 3, 6, 7, 9:11)], 2, as.factor)))
 
 # Association avec le type d'indicateurs (= species category)
 getSpecies <- rcoleo::get_species()
@@ -81,22 +81,26 @@ obsCampCat <- cbind(obsCampCat[, c(1:6, 8:11)], (apply(obsCampCat[, c(7, 12:14)]
 
 # Association du nom du site où l'observation a eu lieu
 names(all_sites)[1] <- "site_id"
+obsCampCat$site_id <- as.numeric(obsCampCat$site_id)
 obsCampCat <- left_join(obsCampCat, all_sites[, c(1, 4:6, 13:15, 20:24)], by = "site_id")
+
 
 all_obs <- cbind(obsCampCat[, c(1:14, 18, 21, 22, 24, 25)], (apply(obsCampCat[, c(15:17, 19, 20, 23)], 2, as.factor)))
 
 # Nettoyage du DF
 # Noms de variables
-names(all_obs)[c(3, 7, 15, 21:25)] <- c("species_value", "species_value_type", "cell_id", "hab_type", "site_open_at", "cell_name", "cell_code", "site_open_year")
+names(all_obs)[c(3, 4, 8, 18, 21:24)] <- c("species_id", "species_value", "species_value_type", "site_open_year", "hab_type", "site_open_at", "cell_id", "cell_name")
 all_obs$hab_type <- as.character(all_obs$hab_type)
+all_obs$cell_id <- as.numeric(all_obs$cell_id)
+all_obs$lat_site <- as.numeric(all_obs$lat_site)
 
 # Année d'observations
 
 all_obs$obs_year <- as.factor(do.call("rbind",strsplit(as.character(all_obs$date_obs), "-"))[,1])
 
 # Ajout de l'information régionale à all_obs
-
 all_obs <- dplyr::left_join(all_obs, RegCellsShiny[, c(3, 4)], by = "cell_id")
+
 
 # ------------------------------------------------ #
 #### Compte des différents types d'indicateurs ####

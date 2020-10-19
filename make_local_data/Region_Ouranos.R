@@ -12,8 +12,8 @@ library(dplyr)
 #### Environmental data uniquement pour les cellules dans le prototype du TdeB ####
 # ---------------------------- #
 
-meteoCELLS <- list.files(path = "data_meteo_cells", full.names = TRUE)
-nb <- nchar("data_meteo_cells/") # For counting the number of characters in the path
+meteoCELLS <- list.files(path = "source_data/data_meteo_cells", full.names = TRUE)
+nb <- nchar("source_data/data_meteo_cells/") # For counting the number of characters in the path
 
 meteoCELLSdf <- data.frame()
 for(i in 1:length(meteoCELLS)){
@@ -66,7 +66,7 @@ names(RegCellsShiny)[4] <- "cell_id"
 #### ------ Récupération des scénarios climatiques dépendemment des régions ----- ####
 scenario_meteo <- data.frame()
 for (i in unique(RegCellsShiny$Region)){
-  files <- list.files("data_ouranos",
+  files <- list.files("source_data/data_ouranos",
                       pattern = i,
                       full.names = TRUE)
   for (j in files){

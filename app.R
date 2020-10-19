@@ -1,17 +1,17 @@
 library(shiny)
-library(tidyverse)
+#library(tidyverse)
 library(rcoleo)
 library(leaflet)
 library(plyr)
 library(dplyr)
-library(shinythemes)
-library(hrbrthemes)
-library(waffle)
+#library(shinythemes)
+#library(hrbrthemes)
+#library(waffle)
 library(shinydashboard)
 library(plotly)
 
 
-if(!exists("all_obs")){source("Manip_coleo.R")}
+if(!exists("all_obs")){source("make_local_data/Manip_coleo.R")}
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
@@ -54,25 +54,25 @@ ui <- dashboardPage(
 # -------------------------------------------------------- #
 
 server <- function(input, output, session) {
-    
+
     # -------- #
     # Listes déroulantes avec années, puis les types d'échantillonnage correspondants - Listes reliées
-    
+
     obs_an = reactive({
         all_obs[all_obs$obs_year == input$an,]
     })
     output$echan <- renderUI({
         selectInput("hab_type", "Type d'habitat", c("Tous", sort(unique(obs_an()$hab_type))))
     })
-    
-    # -------- # 
-    # Map output 
+
+    # -------- #
+    # Map output
     output$map <- renderLeaflet({
         #width = "100%"
     #height = 900
     if(input$hab_type == "Tous"){
-        
-        
+
+
         leaflet() %>%
             addTiles() %>% # Affichage du fond de carte
             addCircleMarkers(lng = obs_an()$long_site, # Positionnement des sites avec les coordonnées long/lat
@@ -81,11 +81,11 @@ server <- function(input, output, session) {
                              popup = obs_an()$popup_info, # Ajout de fenêtres pop-up
                              color = obs_an()$col,
                              layerId = obs_an()$site_code)
-        
-        
-        
+
+
+
     } else {
-        
+
         leaflet() %>%
             addTiles() %>% # Affichage du fond de carte
             addCircleMarkers(lng = obs_an()$long_site[obs_an()$hab_type == input$hab_type], # Positionnement des sites avec les coordonnées long/lat
@@ -94,41 +94,41 @@ server <- function(input, output, session) {
                              popup = obs_an()$popup_info[obs_an()$hab_type == input$hab_type], # Ajout de fenêtres pop-up
                              color = unique(obs_an()$col[obs_an()$hab_type == input$hab_type]),
                              layerId = obs_an()$site_code[obs_an()$hab_type == input$hab_type])
-        
+
     }
-    
+
     })
     # ---------------------- #
     # Click on a map marker #
     # --------------------- #
-    
-    # 
-    observe({ 
-        
+
+    #
+    observe({
+
         event <- input$map_marker_click
-        
+
         # Obtention de la description du site et des conditions météorologiques
-        
+
         output$TempPrec <- renderPlotly({
-            
+
             if (is.null(event))
                 return(NULL)
-            
+
             cell <- unique(obs_an()$cell_id[obs_an()$site_code == event$id])
             temp <- meteoCELLSdf[meteoCELLSdf$cell_id == cell & meteoCELLSdf$indic_meteo == "Temp",]
             temp$Month <- factor(temp$Month, temp$Month)
             prec <- meteoCELLSdf[meteoCELLSdf$cell_id == cell & meteoCELLSdf$indic_meteo == "Prec",]
             prec$Month <- factor(prec$Month, prec$Month)
-            
+
             # ---- #
-            
+
             ay <- list(
                 tickfont = list(color = "green"),
                 overlaying = "y",
                 side = "right",
                 title = "Précipitations cumulées (mm)",
                 showgrid = F)
-            
+
             over <- plot_ly()
             over <- over %>% add_lines(x = temp$Month,
                                        y = temp$Value,
@@ -165,25 +165,25 @@ server <- function(input, output, session) {
                                                    t = 100,
                                                    b = 100,
                                                    autoexpand = TRUE)) %>%
-                config(displayModeBar = FALSE) %>% 
+                config(displayModeBar = FALSE) %>%
                 layout(plot_bgcolor = "rgba(254, 247, 234, 0)") %>%
                 layout(paper_bgcolor = "rgba(254, 247, 234, 0)")
             over
         })
-        
+
         output$scenarios_temp <- renderPlotly({
-            
-            
+
+
             if (is.null(event))
                 return(NULL)
-            
+
             #---#
             reg <- unique(obs_an()$Region[obs_an()$site_code == event$id])
             scenar_temp <- scenario_meteo[scenario_meteo$Region == reg & scenario_meteo$param_met == "temp",]
-            
+
             scenar_temp$Hist.Min[scenar_temp$Annee == 2007] <- min(scenar_temp$rcp45.Min[scenar_temp$Annee == 2007], scenar_temp$rcp85.Min[scenar_temp$Annee == 2007])
             scenar_temp$Hist.Max[scenar_temp$Annee == 2007] <- min(scenar_temp$rcp45.Max[scenar_temp$Annee == 2007], scenar_temp$rcp85.Max[scenar_temp$Annee == 2007])
-            
+
             #---#
             figTemp <- plot_ly(x = scenar_temp$Annee,
                                y = scenar_temp$Obs,
@@ -275,22 +275,22 @@ server <- function(input, output, session) {
                 layout(paper_bgcolor = "rgba(254, 247, 234, 0)") %>%
                 config(displayModeBar = FALSE)
         })
-        
+
         #---#
         output$scenarios_prec <- renderPlotly({
-            
-            
+
+
             if (is.null(event)){
                 return(NULL)
             }else{
-                
+
                 #---#
                 reg <- unique(obs_an()$Region[obs_an()$site_code == event$id])
                 scenar_prec <- scenario_meteo[scenario_meteo$Region == reg & scenario_meteo$param_met == "prec",]
-                
+
                 scenar_prec$Hist.Min[scenar_prec$Annee == 2007] <- min(scenar_prec$rcp45.Min[scenar_prec$Annee == 2007], scenar_prec$rcp85.Min[scenar_prec$Annee == 2007])
                 scenar_prec$Hist.Max[scenar_prec$Annee == 2007] <- min(scenar_prec$rcp45.Max[scenar_prec$Annee == 2007], scenar_prec$rcp85.Max[scenar_prec$Annee == 2007])
-                
+
                 #---#
                 figPrec <- plot_ly(x = scenar_prec$Annee,
                                    y = scenar_prec$Obs,
@@ -365,7 +365,7 @@ server <- function(input, output, session) {
                                                  showlegend = FALSE)
                 #---#
                 figPrec
-                figPrec <- figPrec %>% 
+                figPrec <- figPrec %>%
                     layout(yaxis = list(title = "Précipitations cumulées (mm)",
                                         showgrid = F),
                            xaxis = list(title = "Année",
@@ -384,53 +384,53 @@ server <- function(input, output, session) {
                     layout(paper_bgcolor = "rgba(254, 247, 234, 0)") %>%
                     config(displayModeBar = FALSE)
             }
-            
+
         })
         # Obtention de la liste des espèces observées lors de l'échantillonnage TOUTES CAMPAGNES CONFONDUES
         #----------------------------------------------------------------------
-        
 
-        
+
+
         if(is.null(event$id)){
             mess <- unique(all_obs[, c("name", "category")])
             message <- mess[order(mess$name),]
             names(message) <- c("espèce", "catégorie")
-            
+
             output$donnees <- renderDataTable(message,
                                               options = list(pageLength = 10))
         } else {
-            
+
             mess <- obs_an()[obs_an()$site_code == event$id, c("name", "category")]
             mess <- unique(mess[c("name", "category")])
             message <- mess[order(mess$name),]
             names(message) <- c("espèce", "catégorie")
-            
+
             output$donnees <- renderDataTable(message,
                                               options = list(pageLength = 10))
         }
-        
-        
-        
+
+
+
         # Obtention du bar plot pour la répartition du type d'espèces observées TOUTES CAMPAGNES CONFONDUES
         # ------------------------------------------------------------------------
-        
+
         site_count <- na.omit(plyr::count(obs_an()$category[obs_an()$site_code == event$id]))
         names(site_count)[1] <- "category"
         site_count <- dplyr::left_join(site_count, indic_count, by = "category")
         names(site_count)[1:4] <- c("category", "freq_site", "freq_tot", "prop_tot")
-        
+
         if(length(site_count$category) != length(indic_count$category)){
             for (i in setdiff(indic_count$category, site_count$category)){
                 newline <- c(i, 0, indic_count$freq[indic_count$category == i], indic_count$prop[indic_count$category == i])
                 site_count <- rbind(site_count, newline)
             }
         }
-        
-        
-        
+
+
+
         output$waff <- renderPlotly({
             if(is.null(event$id)){
-                
+
                 figure <- plot_ly()
                 figure <- figure %>% add_trace(data = indic_count,
                                   x = ~freq,
@@ -444,12 +444,12 @@ server <- function(input, output, session) {
                     layout(title = "Pour tous les sites",
                            xaxis = list(title = "Occurence"),
                            yaxis = list(title = ""),
-                           showlegend = F) %>% 
+                           showlegend = F) %>%
                     config(displayModeBar = FALSE)
                 figure
-                
+
             } else {
-                
+
                 figure <- plot_ly()
                     #data = site_count,
                     figure <- figure %>% add_trace(x = as.numeric(site_count$freq_tot),
@@ -472,15 +472,15 @@ server <- function(input, output, session) {
                            barmode = "overlay",
                            xaxis = list(title = "Occurence"),
                            yaxis = list(title = ""),
-                           showlegend = F) %>% 
+                           showlegend = F) %>%
                     config(displayModeBar = FALSE)
                 figure
             }
         })
-        
+
         # Obtention des données à télécharger
         # -----------------------------------
-        
+
         output$DL_data <- downloadHandler(
             filename = function() {
                 paste(event$id, paste("_", unique(obs_an()$obs_year[obs_an()$site_code == event$id]), sep = ""), '.csv', sep="")
@@ -490,7 +490,7 @@ server <- function(input, output, session) {
             }
         )
     })
-    
+
 }
 
 # Run the application
