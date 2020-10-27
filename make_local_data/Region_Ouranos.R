@@ -40,7 +40,7 @@ meteoCELLSdf$indic_meteo <- as.factor(meteoCELLSdf$indic_meteo)
 reg <- geojson_sf("source_data/data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
 cellSHINY <- geojsonio::geojson_sf("local_data/ShinycellsCOORD.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
 
-st_centroid(cellSHINY)
+#st_centroid(cellSHINY)
 
 cent <- st_intersects(reg, st_centroid(cellSHINY))
 
@@ -82,5 +82,5 @@ for (i in unique(RegCellsShiny$Region)){
   }
 
 }
-
+names(scenario_meteo)[1] <- "Annee"
 

@@ -167,6 +167,7 @@ server <- function(input, output, session) {
                 layout(paper_bgcolor = "rgba(254, 247, 234, 0)")
             over
         })
+        # Obtention des paramètres météo historiques & les prévisions - Ouranos
 
         output$scenarios_temp <- renderPlotly({
 
