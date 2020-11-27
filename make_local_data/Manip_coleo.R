@@ -108,12 +108,33 @@ all_obs <- dplyr::left_join(all_obs, RegCellsShiny[, c("cell_id", "Region")], by
 # ------------------------------------------------ #
 #### Compte des différents types d'indicateurs ####
 # ---------------------------------------------- #
+# Occurences totales et diversité alpha des indicateurs dans Coléo
 
-indic_count <- plyr::count(as.character(all_obs$category))
-indic_count$prop <- round((indic_count$freq * 100)/sum(indic_count$freq), digits = 0)
-names(indic_count)[1] <- "category"
-indic_count <- na.omit(indic_count)
+indic_div_coleo <- all_obs %>%
+  dplyr::group_by(category) %>%
+  dplyr::summarise(freq_coleo = length(name),
+                   alpha_coleo = length(unique(name)))
+indic_div_coleo <- na.omit(indic_div_coleo)
 
-# -------------------------------------------------------- #
-#### Diversité alpha pour chaque site vs. toute la BDD ####
-# ------------------------------------------------------ #
+# Occurences totales et diversité alpha des indicateurs par sites
+indic_div_sites <- all_obs %>%
+  dplyr::group_by(site_code, category) %>%
+  dplyr::summarise(freq_site = length(name),
+                   alpha_site = length(unique(name)))
+
+essai <- split(indic_div_sites, indic_div_sites$site_code)
+
+for(i in 1:length(essai)){
+  diff_cat <- setdiff(indic_div_coleo$category, essai[[i]]$category)
+  if(length(diff_cat) != 0){
+    j <- data.frame(category = diff_cat)
+    j$site_code <- unique(essai[[i]]$site_code)
+    j$freq_site <- 0
+    j$alpha_site <- 0
+
+    essai[[i]] <- rbind(essai[[i]], j)
+  }
+}
+
+indic_div_sites <- do.call(rbind, essai)
+indic_div_sites <- indic_div_sites[!is.na(indic_div_sites$category),]

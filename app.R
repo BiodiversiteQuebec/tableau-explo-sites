@@ -35,7 +35,10 @@ ui <- dashboardPage(
         fluidRow(
             box(width = 6,
                 height = 600,
-                h3("Effectif d'indicateurs"),
+                selectInput("illu_indic",
+                            "Définir l'axe des x",
+                            c("occurences", "diversité alpha")),
+                h3("Diversité des indicateurs"),
                 plotlyOutput("waff")),
             box(width = 6,
                 height = "auto",
@@ -380,6 +383,8 @@ server <- function(input, output, session) {
             }
 
         })
+
+
         # Obtention de la liste des espèces observées lors de l'échantillonnage TOUTES CAMPAGNES CONFONDUES
         #----------------------------------------------------------------------
 
@@ -408,84 +413,109 @@ server <- function(input, output, session) {
         # Obtention du bar plot pour la répartition du type d'espèces observées TOUTES CAMPAGNES CONFONDUES
         # ------------------------------------------------------------------------
 
-        site_count <- na.omit(plyr::count(obs_an()$category[obs_an()$site_code == event$id]))
-        names(site_count)[1] <- "category"
-        site_count <- dplyr::left_join(site_count, indic_count, by = "category")
-        names(site_count)[1:4] <- c("category", "freq_site", "freq_tot", "prop_tot")
-
-        if(length(site_count$category) != length(indic_count$category)){
-            for (i in setdiff(indic_count$category, site_count$category)){
-                newline <- c(i, 0, indic_count$freq[indic_count$category == i], indic_count$prop[indic_count$category == i])
-                site_count <- rbind(site_count, newline)
-            }
-        }
-
-
 
         output$waff <- renderPlotly({
             if(is.null(event$id)){
+                if(input$illu_indic == "occurences"){
+                    x_tot <- indic_div_coleo$freq_coleo
+                    x_tot_2 <- x_tot
+                    x_axis_lab <- "Nombre d'occurences"
+                    title = "Pour tous les sites"
+                } else {
+                    x_tot <- indic_div_coleo$alpha_coleo
+                    x_tot_2 <- x_tot
+                    x_axis_lab <- "Diversité alpha"
+                    title = "Pour tous les sites"
+                }
+            } else {
+                if(input$illu_indic == "occurences"){
+                    x_tot <- indic_div_sites$freq_site[indic_div_sites$site_code == event$id]
+                    x_tot_2 <- indic_div_coleo$freq_coleo
+                    x_axis_lab <- "Nombre d'occurences"
+                    title = paste("Pour le site", event$id)
+                } else {
+                    x_tot <- indic_div_sites$alpha_site[indic_div_sites$site_code == event$id]
+                    x_tot_2 <- indic_div_coleo$alpha_coleo
+                    x_axis_lab <- "Diversité alpha"
+                    title = paste("Pour le site", event$id)
+                }
 
+            }
                 figure <- plot_ly()
-                figure <- figure %>% add_trace(data = indic_count,
-                                  x = ~freq,
-                                  y = ~category,
+                figure <- figure %>% add_trace(x = x_tot,
+                                               y = indic_div_coleo$category,
+                                               type = "bar",
+                                               orientation = "h",
+                                               color = indic_div_coleo$category,
+                                               colors = "Dark2",
+                                               opacity = 1,
+                                               name = "Total") %>%
+                        add_trace(x = x_tot_2,
+                                  y = indic_div_coleo$category,
                                   type = "bar",
                                   orientation = "h",
-                                  color = ~category,
+                                  color = indic_div_coleo$category,
                                   colors = "Dark2",
-                                  opacity = 1,
+                                  opacity = 0.1,
                                   name = "Total") %>%
-                    layout(title = "Pour tous les sites",
-                           xaxis = list(title = "Occurence"),
-                           yaxis = list(title = ""),
-                           showlegend = F) %>%
-                    config(displayModeBar = FALSE)
-                figure
-
-            } else {
-
-                figure <- plot_ly()
-                    #data = site_count,
-                    figure <- figure %>% add_trace(x = as.numeric(site_count$freq_tot),
-                    y = site_count$category,
-                    type = "bar",
-                    orientation = "h",
-                    color = site_count$category,
-                    colors = "Dark2",
-                    opacity = 0.1,
-                    name = "Total") %>%
-                    add_trace(x = as.numeric(site_count$freq_site),
-                              y = site_count$category,
-                              type = "bar",
-                              orientation = "h",
-                              color = site_count$category,
-                              colors = "Dark2",
-                              opacity = 1,
-                              name = "Site") %>%
-                    layout(title = paste("Pour le site", event$id),
+                    layout(title = title,
                            barmode = "overlay",
-                           xaxis = list(title = "Occurence"),
+                           xaxis = list(title = x_axis_lab),
                            yaxis = list(title = ""),
                            showlegend = F) %>%
                     config(displayModeBar = FALSE)
                 figure
-            }
+
+
+
         })
+    })
+
+
+
+                # } else {
+                #
+                #     figure <- plot_ly()
+                #     #data = site_count,
+                #     figure <- figure %>% add_trace(x = as.numeric(site_count$freq_tot),
+                #                                    y = site_count$category,
+                #                                    type = "bar",
+                #                                    orientation = "h",
+                #                                    color = site_count$category,
+                #                                    colors = "Dark2",
+                #                                    opacity = 0.1,
+                #                                    name = "Total") %>%
+                #         add_trace(x = as.numeric(site_count$freq_site),
+                #                   y = site_count$category,
+                #                   type = "bar",
+                #                   orientation = "h",
+                #                   color = site_count$category,
+                #                   colors = "Dark2",
+                #                   opacity = 1,
+                #                   name = "Site") %>%
+                #         layout(title = paste("Pour le site", event$id),
+                #                barmode = "overlay",
+                #                xaxis = list(title = "Occurence"),
+                #                yaxis = list(title = ""),
+                #                showlegend = F) %>%
+                #         config(displayModeBar = FALSE)
+                #     figure
+                # }
 
         # Obtention des données à télécharger
         # -----------------------------------
 
-        output$DL_data <- downloadHandler(
-            filename = function() {
-                paste(event$id, paste("_", unique(obs_an()$obs_year[obs_an()$site_code == event$id]), sep = ""), '.csv', sep="")
-            },
-            content = function(file) {
-                write.csv(message, file)
-            }
-        )
-    })
+    #     output$DL_data <- downloadHandler(
+    #         filename = function() {
+    #             paste(event$id, paste("_", unique(obs_an()$obs_year[obs_an()$site_code == event$id]), sep = ""), '.csv', sep="")
+    #         },
+    #         content = function(file) {
+    #             write.csv(message, file)
+    #         }
+    #     )
+    # })
 
-}
+ }
 
 # Run the application
 shinyApp(ui = ui, server = server)
