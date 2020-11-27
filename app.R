@@ -1,5 +1,4 @@
 library(shiny)
-#library(tidyverse)
 library(rcoleo)
 library(leaflet)
 library(plyr)
@@ -65,10 +64,8 @@ server <- function(input, output, session) {
     # -------- #
     # Map output
     output$map <- renderLeaflet({
-        #width = "100%"
-    #height = 900
-    if(input$hab_type == "Tous"){
 
+        if(input$hab_type == "Tous"){
 
         leaflet() %>%
             addTiles() %>% # Affichage du fond de carte
@@ -183,22 +180,22 @@ server <- function(input, output, session) {
             scenar_temp$Hist.Max[scenar_temp$Annee == 2007] <- min(scenar_temp$rcp45.Max[scenar_temp$Annee == 2007], scenar_temp$rcp85.Max[scenar_temp$Annee == 2007])
 
             #---#
-            figTemp <- plot_ly(x = scenar_temp$Annee,
-                               y = scenar_temp$Obs,
+            figTemp <- plot_ly(x = scenar_temp$Annee[scenar_prec$Annee <= 2007],
+                               y = scenar_temp$Obs[scenar_prec$Annee <= 2007],
                                type = "scatter",
                                mode = "lines",
                                line = list(color = 'darkorange'),
                                name = "Valeurs historiques",
                                showlegend = TRUE)
-            figTemp <- figTemp %>% add_trace(x = scenar_temp$Annee,
-                          y = scenar_temp$Hist.Max,
+            figTemp <- figTemp %>% add_trace(x = scenar_temp$Annee[scenar_prec$Annee <= 2007],
+                          y = scenar_temp$Hist.Max[scenar_prec$Annee <= 2007],
                           type = "scatter",
                           mode = "lines",
                           line = list(color = 'transparent'),
                           name = "hist_max",
                           showlegend = FALSE)
-            figTemp <- figTemp %>% add_trace(x = scenar_temp$Annee,
-                          y = scenar_temp$Hist.Min,
+            figTemp <- figTemp %>% add_trace(x = scenar_temp$Annee[scenar_prec$Annee <= 2007],
+                          y = scenar_temp$Hist.Min[scenar_prec$Annee <= 2007],
                           type = "scatter",
                           mode = "lines",
                           fill = "tonexty",
@@ -290,22 +287,22 @@ server <- function(input, output, session) {
                 scenar_prec$Hist.Max[scenar_prec$Annee == 2007] <- min(scenar_prec$rcp45.Max[scenar_prec$Annee == 2007], scenar_prec$rcp85.Max[scenar_prec$Annee == 2007])
 
                 #---#
-                figPrec <- plot_ly(x = scenar_prec$Annee,
-                                   y = scenar_prec$Obs,
+                figPrec <- plot_ly(x = scenar_prec$Annee[scenar_prec$Annee <= 2007],
+                                   y = scenar_prec$Obs[scenar_prec$Annee <= 2007],
                                    type = "scatter",
                                    mode = "lines",
                                    line = list(color = 'rgba(0,100,80,1)'),
                                    name = "hist_prec",
                                    showlegend = TRUE)
-                figPrec <- figPrec %>% add_trace(x = scenar_prec$Annee,
-                                                 y = scenar_prec$Hist.Min,
+                figPrec <- figPrec %>% add_trace(x = scenar_prec$Annee[scenar_prec$Annee <= 2007],
+                                                 y = scenar_prec$Hist.Min[scenar_prec$Annee <= 2007],
                                                  type = "scatter",
                                                  mode = "lines",
                                                  line = list(color = 'transparent'),
                                                  name = "hist_prec_min",
                                                  showlegend = FALSE)
-                figPrec <- figPrec %>% add_trace(x = scenar_prec$Annee,
-                                                 y = scenar_prec$Hist.Max,
+                figPrec <- figPrec %>% add_trace(x = scenar_prec$Annee[scenar_prec$Annee <= 2007],
+                                                 y = scenar_prec$Hist.Max[scenar_prec$Annee <= 2007],
                                                  type = "scatter",
                                                  mode = "lines",
                                                  fill = "tonexty",
@@ -362,7 +359,6 @@ server <- function(input, output, session) {
                                                  name = "em_forte_max",
                                                  showlegend = FALSE)
                 #---#
-                figPrec
                 figPrec <- figPrec %>%
                     layout(yaxis = list(title = "Précipitations cumulées (mm)",
                                         showgrid = F),

@@ -1,4 +1,5 @@
-# Extraction pour chaque cellule de COLEO, la région administrative (modifiées par Ouranos) #
+# Températures et précipitations pour chaque cellule ont été extraits de https://earthmap.org/
+# Extraction pour chaque cellule de COLEO, la région administrative (modifiées par Ouranos) & les scénarios prévisionnels des changements climatiques associés
 # https://www.ouranos.ca/portraits-climatiques/#/ #
 
 library(sf)
@@ -6,6 +7,7 @@ library(raster)
 library(geojsonio)
 library(rcoleo)
 library(dplyr)
+library(stringr)
 
 
 # ------------------------------ #
@@ -17,8 +19,12 @@ nb <- nchar("source_data/data_meteo_cells/") # For counting the number of charac
 
 meteoCELLSdf <- data.frame()
 for(i in 1:length(meteoCELLS)){
-  cell_id <- substr(meteoCELLS[[i]], start = nb+1, stop = nb+3)# j+1 / j+3
-  indic_meteo <- substr(meteoCELLS[[i]], start = nb+5, stop = nb+8) # j+5 / j+8
+  path_cell <- stringr::str_sub(meteoCELLS[i], nb+1)
+  path_break <- unlist(strsplit(path_cell, "-"))
+
+  cell_id <- path_break[1]
+  indic_meteo <- stringr::str_sub(path_break[2], 1, 4)
+
   tab <- readr::read_csv(meteoCELLS[[i]], col_names = FALSE, skip = 2)
   tab$cell_id <- cell_id
   tab$indic_meteo <- indic_meteo
@@ -26,7 +32,7 @@ for(i in 1:length(meteoCELLS)){
   meteoCELLSdf <- rbind(meteoCELLSdf, tab)
 }
 
-names(meteoCELLSdf)[c(1, 2)] <- c("Month", "Value")
+names(meteoCELLSdf)[names(meteoCELLSdf) == "X1" | names(meteoCELLSdf) == "X2"] <- c("Month", "Value")
 meteoCELLSdf$indic_meteo[meteoCELLSdf$indic_meteo == "Mean"] <- "Temp"
 
 meteoCELLSdf$Month <- as.factor(meteoCELLSdf$Month)
@@ -38,9 +44,8 @@ meteoCELLSdf$indic_meteo <- as.factor(meteoCELLSdf$indic_meteo)
 
 # sf objects
 reg <- geojson_sf("source_data/data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
-cellSHINY <- geojsonio::geojson_sf("local_data/ShinycellsCOORD.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
-
-#st_centroid(cellSHINY)
+cellSHINY <- geojsonio::geojson_sf("local_data/cellsCoords2.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
+#cellSHINY$id <- 1:length(cellSHINY$IJ)
 
 cent <- st_intersects(reg, st_centroid(cellSHINY))
 
@@ -52,15 +57,14 @@ for (i in 1:length(cent)){
   }
 }
 
-RegCellsShiny <- dplyr::left_join(RegCellsShiny, reg[, c(2, 4)], by = "id")
+RegCellsShiny <- dplyr::left_join(RegCellsShiny, reg[, c("id", "Region")], by = "id")
+names(RegCellsShiny)[names(RegCellsShiny) == "id"] <- "region_id"
 RegCellsShiny <- RegCellsShiny[,-4]
 
-#cellSHINY <- as.data.frame(cellSHINY)
-
-cellSHINY$cell_num <- 1:length(cellSHINY$name)
-RegCellsShiny <- dplyr::left_join(RegCellsShiny, cellSHINY[, -2], by = "cell_num")
-RegCellsShiny <- RegCellsShiny[, -5]
-names(RegCellsShiny)[4] <- "cell_id"
+cellSHINY$cell_num <- 1:length(cellSHINY$Nom)
+RegCellsShiny <- dplyr::left_join(RegCellsShiny, cellSHINY[, -4], by = "cell_num")
+#RegCellsShiny <- RegCellsShiny[, -5]
+names(RegCellsShiny)[names(RegCellsShiny) == "Nom"] <- "cell_id"
 
 
 #### ------ Récupération des scénarios climatiques dépendemment des régions ----- ####
