@@ -278,11 +278,11 @@ server <- function(input, output, session) {
         output$scenarios_prec <- renderPlotly({
 
 
-            if (is.null(event)){
+            if (is.null(event))
                 return(NULL)
-            }else{
 
                 #---#
+
                 reg <- unique(obs_an()$Region[obs_an()$site_code == event$id])
                 scenar_prec <- scenario_meteo[scenario_meteo$Region == reg & scenario_meteo$param_met == "prec",]
 
@@ -380,7 +380,7 @@ server <- function(input, output, session) {
                     layout(plot_bgcolor = "rgba(254, 247, 234, 0)") %>%
                     layout(paper_bgcolor = "rgba(254, 247, 234, 0)") %>%
                     config(displayModeBar = FALSE)
-            }
+
 
         })
 
