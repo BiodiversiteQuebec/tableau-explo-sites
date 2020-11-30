@@ -43,7 +43,7 @@ meteoCELLSdf$indic_meteo <- as.factor(meteoCELLSdf$indic_meteo)
 
 
 # sf objects
-reg <- geojson_sf("source_data/data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
+reg <- geojsonio::geojson_sf("source_data/data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
 cellSHINY <- geojsonio::geojson_sf("local_data/cellsCoords2.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
 #cellSHINY$id <- 1:length(cellSHINY$IJ)
 
