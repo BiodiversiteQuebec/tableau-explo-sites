@@ -35,10 +35,15 @@ ui <- dashboardPage(
         fluidRow(
             box(width = 6,
                 height = 600,
+                h3("Diversité des indicateurs"),
                 selectInput("illu_indic",
                             "Définir l'axe des x",
-                            c("occurences", "diversité alpha")),
-                h3("Diversité des indicateurs"),
+                            c("occurences", "diversité alpha"),
+                            selected = "diversité alpha"),
+                checkboxInput("log",
+                              "Échelle logarithmique ?",
+                              value = TRUE,
+                              width = NULL),
                 plotlyOutput("waff")),
             box(width = 6,
                 height = "auto",
@@ -177,28 +182,25 @@ server <- function(input, output, session) {
 
             #---#
             reg <- unique(obs_an()$Region[obs_an()$site_code == event$id])
-            scenar_temp <- scenario_meteo[scenario_meteo$Region == reg & scenario_meteo$param_met == "temp",]
-
-            scenar_temp$Hist.Min[scenar_temp$Annee == 2007] <- min(scenar_temp$rcp45.Min[scenar_temp$Annee == 2007], scenar_temp$rcp85.Min[scenar_temp$Annee == 2007])
-            scenar_temp$Hist.Max[scenar_temp$Annee == 2007] <- min(scenar_temp$rcp45.Max[scenar_temp$Annee == 2007], scenar_temp$rcp85.Max[scenar_temp$Annee == 2007])
+            scenar_temp <- scenario_meteo[c(scenario_meteo$Region == reg & scenario_meteo$param_met == "temp"),]
 
             #---#
-            figTemp <- plot_ly(x = scenar_temp$Annee[scenar_prec$Annee <= 2007],
-                               y = scenar_temp$Obs[scenar_prec$Annee <= 2007],
+            figTemp <- plot_ly(x = scenar_temp$Annee[scenar_temp$Annee <= 2007],
+                               y = scenar_temp$Obs[scenar_temp$Annee <= 2007],
                                type = "scatter",
                                mode = "lines",
                                line = list(color = 'darkorange'),
                                name = "Valeurs historiques",
                                showlegend = TRUE)
-            figTemp <- figTemp %>% add_trace(x = scenar_temp$Annee[scenar_prec$Annee <= 2007],
-                          y = scenar_temp$Hist.Max[scenar_prec$Annee <= 2007],
+            figTemp <- figTemp %>% add_trace(x = scenar_temp$Annee[scenar_temp$Annee <= 2007],
+                          y = scenar_temp$Hist.Max[scenar_temp$Annee <= 2007],
                           type = "scatter",
                           mode = "lines",
                           line = list(color = 'transparent'),
                           name = "hist_max",
                           showlegend = FALSE)
-            figTemp <- figTemp %>% add_trace(x = scenar_temp$Annee[scenar_prec$Annee <= 2007],
-                          y = scenar_temp$Hist.Min[scenar_prec$Annee <= 2007],
+            figTemp <- figTemp %>% add_trace(x = scenar_temp$Annee[scenar_temp$Annee <= 2007],
+                          y = scenar_temp$Hist.Min[scenar_temp$Annee <= 2007],
                           type = "scatter",
                           mode = "lines",
                           fill = "tonexty",
@@ -285,9 +287,6 @@ server <- function(input, output, session) {
 
                 reg <- unique(obs_an()$Region[obs_an()$site_code == event$id])
                 scenar_prec <- scenario_meteo[scenario_meteo$Region == reg & scenario_meteo$param_met == "prec",]
-
-                scenar_prec$Hist.Min[scenar_prec$Annee == 2007] <- min(scenar_prec$rcp45.Min[scenar_prec$Annee == 2007], scenar_prec$rcp85.Min[scenar_prec$Annee == 2007])
-                scenar_prec$Hist.Max[scenar_prec$Annee == 2007] <- min(scenar_prec$rcp45.Max[scenar_prec$Annee == 2007], scenar_prec$rcp85.Max[scenar_prec$Annee == 2007])
 
                 #---#
                 figPrec <- plot_ly(x = scenar_prec$Annee[scenar_prec$Annee <= 2007],
@@ -421,11 +420,21 @@ server <- function(input, output, session) {
                     x_tot_2 <- x_tot
                     x_axis_lab <- "Nombre d'occurences"
                     title = "Pour tous les sites"
+                    if(input$log == TRUE){
+                        type <- "log"
+                    } else {
+                        type <- "-"
+                    }
                 } else {
                     x_tot <- indic_div_coleo$alpha_coleo
                     x_tot_2 <- x_tot
                     x_axis_lab <- "Diversité alpha"
                     title = "Pour tous les sites"
+                    if(input$log == TRUE){
+                        type <- "log"
+                    } else {
+                        type <- "-"
+                    }
                 }
             } else {
                 if(input$illu_indic == "occurences"){
@@ -433,11 +442,21 @@ server <- function(input, output, session) {
                     x_tot_2 <- indic_div_coleo$freq_coleo
                     x_axis_lab <- "Nombre d'occurences"
                     title = paste("Pour le site", event$id)
+                    if(input$log == TRUE){
+                        type <- "log"
+                    } else {
+                        type <- "-"
+                    }
                 } else {
                     x_tot <- indic_div_sites$alpha_site[indic_div_sites$site_code == event$id]
                     x_tot_2 <- indic_div_coleo$alpha_coleo
                     x_axis_lab <- "Diversité alpha"
                     title = paste("Pour le site", event$id)
+                    if(input$log == TRUE){
+                        type <- "log"
+                    } else {
+                        type <- "-"
+                    }
                 }
 
             }
@@ -460,7 +479,8 @@ server <- function(input, output, session) {
                                   name = "Total") %>%
                     layout(title = title,
                            barmode = "overlay",
-                           xaxis = list(title = x_axis_lab),
+                           xaxis = list(title = x_axis_lab,
+                                        type = type),
                            yaxis = list(title = ""),
                            showlegend = F) %>%
                     config(displayModeBar = FALSE)

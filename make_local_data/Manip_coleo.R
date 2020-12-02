@@ -131,6 +131,7 @@ for(i in 1:length(essai)){
     j$site_code <- unique(essai[[i]]$site_code)
     j$freq_site <- 0
     j$alpha_site <- 0
+    j <- j[order(j$category),]
 
     essai[[i]] <- rbind(essai[[i]], j)
   }

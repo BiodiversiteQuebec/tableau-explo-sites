@@ -82,6 +82,12 @@ for (i in unique(RegCellsShiny$Region)){
     }
     data$param_met <- param
     data$Region <- i
+
+    # pour la continuité des iC dans le graphique
+    data$Hist.Min[data[1] == 2007] <- min(data$rcp45.Min[data[1] == 2007], data$rcp85.Min[data[1] == 2007])
+    data$Hist.Max[data[1] == 2007] <- min(data$rcp45.Max[data[1] == 2007], data$rcp85.Max[data[1] == 2007])
+    data$Obs[data[1] > 2007] <- NA
+
     scenario_meteo <- rbind(scenario_meteo, data)
   }
 
