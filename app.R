@@ -1,14 +1,11 @@
 library(shiny)
-library(rcoleo)
 library(leaflet)
-library(plyr)
-library(dplyr)
 library(shinydashboard)
 library(plotly)
 library(shinyWidgets)
 
 
-if(!exists("all_obs")){source(here::here("make_local_data", "Manip_coleo.R"))}
+if(!exists("all_obs")){source(here::here("make_local_data", "Manip_climate_data_coleo.R"))}
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(

@@ -2,13 +2,17 @@
 # Extraction des scénarios prévisionnels des changements climatiques associés à chaque région administrative (modifiées par Ouranos)
 # https://www.ouranos.ca/portraits-climatiques/#/ #
 
+library(tidyverse)
+library(rcoleo)
 library(sf)
 library(raster)
 library(geojsonio)
+library(jsonlite)
 library(rcoleo)
+library(plyr)
 library(dplyr)
+library(purrr)
 library(stringr)
-
 
 # ------------------------------ #
 #### Environmental data uniquement pour les cellules dans le prototype du TdeB ####
@@ -93,22 +97,7 @@ for (i in unique(RegCellsShiny$Region)){
 names(scenario_meteo)[1] <- "Annee"
 
 
-
-
-
-#rm(list = ls())
-library(tidyverse)
-library(rcoleo)
-library(plyr)
-library(dplyr)
-library(purrr)
-library(jsonlite)
-library(geojsonio)
-library(sf)
-
-#source(here::here("make_local_data/Region_Ouranos.R"))
-
-
+#### Manip Coléo ####
 # ----------------------------------------------------- #
 #### Obtention des informations pour tous les sites ####
 # --------------------------------------------------- #
