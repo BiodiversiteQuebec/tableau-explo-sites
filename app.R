@@ -5,9 +5,10 @@ library(plyr)
 library(dplyr)
 library(shinydashboard)
 library(plotly)
+library(shinyWidgets)
 
 
-if(!exists("all_obs")){source("make_local_data/Manip_coleo.R")}
+if(!exists("all_obs")){source(here::here("make_local_data", "Manip_coleo.R"))}
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
@@ -15,27 +16,50 @@ ui <- dashboardPage(
     dashboardSidebar(disable = TRUE),
     dashboardBody(
         fluidRow(
+
             box(width = 3,
                 height = 900,
                 selectInput("an",
                             "Année d'échantillonnage des sites",
                             unique(sort(all_obs$obs_year))),
                 uiOutput("echan"),
-                h3("Conditions météorologiques du site"),
+                div(style = "font-size:25px; text-align:center",
+                    "Conditions météorologiques du site",
+                    tags$sup(circleButton(inputId = "info",
+                         label = "",
+                         icon = icon("info"),
+                         size = "xs",
+                         status = "primary"))),
                 plotlyOutput("TempPrec")),
+
             box(width = 6,
                 height = 900,
                 leafletOutput("map", height = 880)),
+
             box(width = 3,
                 height = 900,
-                h3("Scénarios changements climatiques pour la région"),
+                div(style = "font-size:25px; text-align:center",
+                    "Scénarios changements climatiques pour la région",
+                    tags$sup(circleButton(inputId = "info2",
+                                          label = "",
+                                          icon = icon("info"),
+                                          size = "xs",
+                                          status = "primary"))),
                 plotlyOutput("scenarios_temp"),
                 plotlyOutput("scenarios_prec"))
         ),
+
         fluidRow(
+
             box(width = 6,
                 height = 600,
-                h3("Diversité des indicateurs"),
+                div(style = "font-size:25px; text-align:center",
+                    "Diversité des indicateurs",
+                    tags$sup(circleButton(inputId = "info3",
+                                          label = "",
+                                          icon = icon("info"),
+                                          size = "xs",
+                                          status = "primary"))),
                 selectInput("illu_indic",
                             "Définir l'axe des x",
                             c("occurences", "diversité alpha"),
@@ -45,6 +69,7 @@ ui <- dashboardPage(
                               value = TRUE,
                               width = NULL),
                 plotlyOutput("waff")),
+
             box(width = 6,
                 height = "auto",
                 dataTableOutput("donnees"),
@@ -58,7 +83,32 @@ ui <- dashboardPage(
 # -------------------------------------------------------- #
 
 server <- function(input, output, session) {
+    # -------- #
+    # infos texte
+    observeEvent(input$info, {
+        showModal(modalDialog(
+            title = "Conditions météorologiques du site",
+            HTML("Ce graphique décrit la variation des températures mensuelles moyennes et des précipitations cumulées mensuelles au cours de l'année pour le site sélectionné. Les données sont issues de <a href=\"https://earthmap.org\">https://earthmap.org/</a>."),
+            easyClose = TRUE,
+            footer = NULL))
+    })
 
+    observeEvent(input$info2, {
+        showModal(modalDialog(
+            title = "Scénarios changements climatiques pour la région",
+            HTML("Ces graphiques présentent l'évolution des températures et précipitations annuelles entre 1950 et 2007 pour une région données, mais également l'évolution des températures et précipitations prévue dans le cadre des scénarios des changements climatiques. Les données sont extraites de <a href=\"https://www.ouranos.ca/portraits-climatiques/\">https://www.ouranos.ca/portraits-climatiques/</a>."),
+            easyClose = TRUE,
+            footer = NULL))
+    })
+
+    observeEvent(input$info3, {
+        showModal(modalDialog(
+            title = "Diversité des indicateurs",
+            HTML("définition d'un indicateur dont la proportion pour chaque site est représenté en terme de diversité alpha (définition) et de nombre d'occurence."),
+            easyClose = TRUE,
+            footer = NULL
+        ))
+    })
     # -------- #
     # Listes déroulantes avec années, puis les types d'échantillonnage correspondants - Listes reliées
 
@@ -182,7 +232,7 @@ server <- function(input, output, session) {
 
             #---#
             reg <- unique(obs_an()$Region[obs_an()$site_code == event$id])
-            scenar_temp <- scenario_meteo[c(scenario_meteo$Region == reg & scenario_meteo$param_met == "temp"),]
+            scenar_temp <- scenario_meteo[scenario_meteo$Region == reg & scenario_meteo$param_met == "temp",]
 
             #---#
             figTemp <- plot_ly(x = scenar_temp$Annee[scenar_temp$Annee <= 2007],
