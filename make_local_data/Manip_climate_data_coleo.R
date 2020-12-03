@@ -79,7 +79,7 @@ for (i in unique(RegCellsShiny$Region)){
     data <- read.csv(j,
                      header = TRUE,
                      sep = ",",
-                     encoding = "UTF-8")
+                     encoding = "US-ASCII")
     if(stringr::str_detect(j, "Total") == TRUE){
       param <- "prec"
     }else{
