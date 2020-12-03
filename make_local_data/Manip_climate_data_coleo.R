@@ -76,7 +76,10 @@ for (i in unique(RegCellsShiny$Region)){
                       pattern = i,
                       full.names = TRUE)
   for (j in files){
-    data <- read.csv(j, header = TRUE)
+    data <- read.csv(j,
+                     header = TRUE,
+                     sep = ",",
+                     encoding = "UTF-8")
     if(stringr::str_detect(j, "Total") == TRUE){
       param <- "prec"
     }else{
