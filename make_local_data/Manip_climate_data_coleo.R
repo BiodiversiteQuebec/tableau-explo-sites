@@ -45,7 +45,8 @@ meteoCELLSdf$indic_meteo <- as.factor(meteoCELLSdf$indic_meteo)
 
 # sf objects
 reg <- geojsonio::geojson_sf("source_data/data_ouranos/regions_simplified_Ouranos.geojson") # régions du Québec modifiées par Ouranos
-cellSHINY <- geojsonio::geojson_sf("local_data/cellsCoords2.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
+#cellSHINY2 <- geojsonio::geojson_sf("local_data/cellsCoords2.geojson")
+cellSHINY <- geojsonio::geojson_sf("local_data/cellsCoords3.geojson") # Cellules actuellement utilisées dans le TdeB "description des sites"
 #cellSHINY$id <- 1:length(cellSHINY$IJ)
 
 cent <- st_intersects(reg, st_centroid(cellSHINY))
@@ -62,10 +63,10 @@ RegCellsShiny <- dplyr::left_join(RegCellsShiny, reg[, c("id", "Region")], by = 
 names(RegCellsShiny)[names(RegCellsShiny) == "id"] <- "region_id"
 RegCellsShiny <- RegCellsShiny[,-4]
 
-cellSHINY$cell_num <- 1:length(cellSHINY$Nom)
+cellSHINY$cell_num <- 1:length(cellSHINY$NOM)
 RegCellsShiny <- dplyr::left_join(RegCellsShiny, cellSHINY[, -4], by = "cell_num")
 #RegCellsShiny <- RegCellsShiny[, -5]
-names(RegCellsShiny)[names(RegCellsShiny) == "Nom"] <- "cell_id"
+names(RegCellsShiny)[names(RegCellsShiny) == "NOM"] <- "cell_id"
 
 # ------------------------------ #
 #### ------ Récupération des scénarios climatiques pour chaque région ----- ####
